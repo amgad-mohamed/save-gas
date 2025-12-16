@@ -18,6 +18,7 @@ export default function Home() {
   const [isTronPending, setIsTronPending] = useState(false);
   const [tronAllowance, setTronAllowance] = useState<bigint>(BigInt(0));
   const [networkName, setNetworkName] = useState<string>("Unknown");
+  const [showNileModal, setShowNileModal] = useState(false);
 
   // Check network on load and change
   useEffect(() => {
@@ -64,16 +65,14 @@ export default function Home() {
         console.error(
           "WRONG NETWORK: You are not connected to nile.trongrid.io"
         );
-        alert(
-          "Wrong Network! Please switch TronLink Node to: https://nile.trongrid.io"
-        );
+        // We use the UI banner instead of alert now
       }
     }
   }, [networkName]);
 
   // Tron Interaction Functions
   // tsIgnore
-  const getTronContract = async (address: string, abi:unknown) => {
+  const getTronContract = async (address: string, abi: unknown) => {
     console.log("Getting Tron Contract...");
 
     // Helper to wait for TronWeb to be ready
@@ -423,7 +422,113 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-md">
         <h1 className="text-2xl font-bold">Save Gas - Tron Nile</h1>
 
-        <WalletActionButton />
+        <div className="flex flex-col gap-2 w-full items-center">
+          <div className="flex gap-4 items-center">
+            <WalletActionButton />
+            <button
+              onClick={() => setShowNileModal(true)}
+              className="text-xs bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Add/Switch Nile Network
+            </button>
+          </div>
+
+          {/* Network Enforcement Banner */}
+          {isTronConnected &&
+            networkName !== "Unknown" &&
+            !networkName.includes("nile.trongrid.io") && (
+              <div className="bg-red-600 text-white p-4 rounded-lg text-center font-bold animate-pulse w-full border-2 border-white shadow-lg">
+                ⚠️ WRONG NETWORK DETECTED ⚠️
+                <div className="text-sm font-normal mt-2">
+                  You are connected to: {networkName}
+                  <br />
+                  Please switch your wallet to{" "}
+                  <span className="underline">Nile Testnet</span>
+                </div>
+                <button
+                  onClick={() => setShowNileModal(true)}
+                  className="mt-3 bg-white text-red-600 px-4 py-1 rounded-full font-bold hover:bg-gray-100 transition-colors text-sm"
+                >
+                  Click here to fix
+                </button>
+              </div>
+            )}
+        </div>
+
+        {/* Nile Network Info Modal */}
+        {showNileModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl max-w-md w-full shadow-2xl relative">
+              <button
+                onClick={() => setShowNileModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+
+              <h2 className="text-xl font-bold mb-4">
+                Setup Tron Nile Network
+              </h2>
+
+              <div className="space-y-4 text-sm">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded text-blue-800 dark:text-blue-200">
+                  <strong>Recommended:</strong> Open your wallet
+                  (TronLink/Trust) and select <b>&quot;Nile Testnet&quot;</b> from the
+                  network list.
+                </div>
+
+                <div>
+                  <p className="font-semibold mb-2">Manual Configuration:</p>
+                  <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded space-y-2 font-mono text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Full Node:</span>
+                      <span className="select-all">https://api.nileex.io</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Solidity Node:</span>
+                      <span className="select-all">https://api.nileex.io</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Event Server:</span>
+                      <span className="select-all">
+                        https://event.nileex.io
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Explorer:</span>
+                      <span className="select-all">
+                        https://nile.tronscan.org
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  * Tron wallets typically do not support adding networks
+                  automatically via button click. You must add it manually or
+                  select it from the developer settings.
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <a
+                    href="https://nile.tronscan.org/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 bg-green-600 text-white py-2 rounded text-center hover:bg-green-700 transition-colors"
+                  >
+                    Open Nile Explorer
+                  </a>
+                  <button
+                    onClick={() => setShowNileModal(false)}
+                    className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded hover:bg-gray-300 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {isTronConnected && (
           <div className="flex flex-col gap-6 p-6 border rounded-xl w-full bg-gray-50 dark:bg-gray-800">
